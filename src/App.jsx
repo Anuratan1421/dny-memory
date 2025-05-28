@@ -1,6 +1,4 @@
-"use client"
-
-import { useState, useRef } from "react"
+import { useState } from "react"
 import "./App.css"
 
 export default function App() {
@@ -10,7 +8,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false)
   const [showFullStory, setShowFullStory] = useState(false)
   const [generatedImageUrl, setGeneratedImageUrl] = useState("")
-  const canvasRef = useRef(null)
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false)
 
   const story = `Last Bell Ring Again…
 The corridors are quieter now. Canteens that echoed with laughter now serve their last few cups of chai. Slowly, the campus begins to breathe differently—as if it knows something is ending.
@@ -71,166 +69,8 @@ So here's to the friendships made in these four years—whether born in hostel r
 
 They may not stay the same. But they'll always stay with you.`
 
-  // Modern Gen Z Canvas Image Generation
-  const generateMessageImage = (messageText) => {
-    const canvas = canvasRef.current
-    const ctx = canvas.getContext("2d")
-
-    try {
-      // Mobile-friendly canvas size (Instagram story ratio but smaller for mobile)
-      const isMobile = window.innerWidth <= 768
-      canvas.width = isMobile ? 540 : 1080
-      canvas.height = isMobile ? 960 : 1920
-
-      // Modern Gen Z gradient background
-      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height)
-      gradient.addColorStop(0, "#ff9a9e")
-      gradient.addColorStop(0.2, "#fecfef")
-      gradient.addColorStop(0.4, "#fecfef")
-      gradient.addColorStop(0.6, "#a8edea")
-      gradient.addColorStop(0.8, "#fed6e3")
-      gradient.addColorStop(1, "#d299c2")
-
-      ctx.fillStyle = gradient
-      ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-      // Add aesthetic noise texture
-      for (let i = 0; i < 200; i++) {
-        ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.1})`
-        ctx.fillRect(Math.random() * canvas.width, Math.random() * canvas.height, Math.random() * 3, Math.random() * 3)
-      }
-
-      // Aesthetic geometric shapes
-      ctx.fillStyle = "rgba(255, 255, 255, 0.1)"
-      for (let i = 0; i < 8; i++) {
-        ctx.beginPath()
-        ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, Math.random() * 100 + 50, 0, 2 * Math.PI)
-        ctx.fill()
-      }
-
-      // Modern border with rounded corners effect
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.8)"
-      ctx.lineWidth = 8
-      ctx.setLineDash([20, 10])
-      ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80)
-      ctx.setLineDash([])
-
-      // Trendy title with shadow
-      const titleSize = isMobile ? 28 : 48
-      ctx.font = `bold ${titleSize}px Arial, sans-serif`
-      ctx.textAlign = "center"
-
-      // Title shadow
-      ctx.fillStyle = "rgba(0, 0, 0, 0.3)"
-      ctx.fillText("✨ college memories ✨", canvas.width / 2 + 3, 150 + 3)
-
-      // Title main
-      ctx.fillStyle = "#ffffff"
-      ctx.fillText("✨ college memories ✨", canvas.width / 2, 150)
-
-      // Aesthetic decorative elements (Gen Z style)
-      const emojiSize = isMobile ? 24 : 40
-      ctx.font = `${emojiSize}px Arial`
-
-      // Scattered aesthetic emojis
-      const aestheticEmojis = ["✨", "💫", "🌸", "🦋", "💖", "🌙", "⭐", "🌺", "💝", "🎀"]
-      const positions = [
-        [100, 200],
-        [canvas.width - 100, 220],
-        [80, 350],
-        [canvas.width - 80, 380],
-        [120, canvas.height - 300],
-        [canvas.width - 120, canvas.height - 280],
-        [60, canvas.height / 2],
-        [canvas.width - 60, canvas.height / 2 + 50],
-      ]
-
-      positions.forEach((pos, index) => {
-        if (index < aestheticEmojis.length) {
-          ctx.fillText(aestheticEmojis[index], pos[0], pos[1])
-        }
-      })
-
-      // Main message with modern styling
-      const messageSize = isMobile ? 18 : 32
-      ctx.font = `${messageSize}px Arial, sans-serif`
-      ctx.textAlign = "center"
-
-      // Word wrap for mobile compatibility
-      const words = messageText.split(" ")
-      const lines = []
-      let currentLine = ""
-      const maxWidth = canvas.width - (isMobile ? 80 : 160)
-
-      words.forEach((word) => {
-        const testLine = currentLine + word + " "
-        const metrics = ctx.measureText(testLine)
-        if (metrics.width > maxWidth && currentLine !== "") {
-          lines.push(currentLine.trim())
-          currentLine = word + " "
-        } else {
-          currentLine = testLine
-        }
-      })
-      lines.push(currentLine.trim())
-
-      // Limit lines for mobile
-      const maxLines = isMobile ? 15 : 20
-      const displayLines = lines.slice(0, maxLines)
-      if (lines.length > maxLines) {
-        displayLines[maxLines - 1] = displayLines[maxLines - 1] + "..."
-      }
-
-      // Draw text with modern styling
-      const lineHeight = isMobile ? 25 : 45
-      const startY = (canvas.height - displayLines.length * lineHeight) / 2
-
-      displayLines.forEach((line, index) => {
-        const yPos = startY + index * lineHeight
-
-        // Text shadow for readability
-        ctx.fillStyle = "rgba(0, 0, 0, 0.4)"
-        ctx.fillText(line, canvas.width / 2 + 2, yPos + 2)
-
-        // Main text
-        ctx.fillStyle = "#ffffff"
-        ctx.fillText(line, canvas.width / 2, yPos)
-      })
-
-      // Modern footer
-      const footerSize = isMobile ? 14 : 24
-      ctx.font = `bold ${footerSize}px Arial, sans-serif`
-      ctx.fillStyle = "rgba(255, 255, 255, 0.9)"
-      ctx.fillText("made with 💖 for the memories", canvas.width / 2, canvas.height - 120)
-
-      // Trendy hashtags
-      const hashtagSize = isMobile ? 12 : 20
-      ctx.font = `${hashtagSize}px Arial, sans-serif`
-      ctx.fillStyle = "rgba(255, 255, 255, 0.8)"
-      ctx.fillText("#collegelife #memories #friendship #nostalgia", canvas.width / 2, canvas.height - 80)
-
-      // Convert to blob with error handling
-      canvas.toBlob(
-        (blob) => {
-          if (blob) {
-            const url = URL.createObjectURL(blob)
-            setGeneratedImageUrl(url)
-          } else {
-            console.error("Failed to create blob")
-          }
-        },
-        "image/png",
-        0.9,
-      )
-    } catch (error) {
-      console.error("Canvas error:", error)
-      alert("Sorry, image generation failed on this device. Please try on desktop.")
-    }
-  }
-
   const shareStory = () => {
-    const storyText =
-      "Last Bell Ring Again... A beautiful story about college memories and friendships that last forever."
+    const storyText = "Last Bell Ring Again... A beautiful story about college memories and friendships that last forever."
     const url = window.location.href
 
     if (navigator.share) {
@@ -306,6 +146,7 @@ They may not stay the same. But they'll always stay with you.`
     }
 
     setIsLoading(true)
+    setGeneratedImageUrl("")
 
     try {
       const response = await fetch("http://localhost:3001/api/generate", {
@@ -319,24 +160,48 @@ They may not stay the same. But they'll always stay with you.`
       const data = await response.json()
       setGeneratedMessage(data.message)
 
-      // Generate image after getting the message with delay for mobile
-      setTimeout(() => {
-        generateMessageImage(data.message)
-      }, 200)
+      if (data.imageUrl) {
+        setGeneratedImageUrl(data.imageUrl)
+      } else {
+        generateImageWithGemini(data.message)
+      }
     } catch (error) {
       console.error("Error generating message:", error)
       setGeneratedMessage("Something went wrong while generating your message. Please try again later.")
-
-      // Generate image even with error message
-      setTimeout(() => {
-        generateMessageImage("Something went wrong while generating your message. Please try again later.")
-      }, 200)
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Enhanced Instagram sharing for mobile
+  const generateImageWithGemini = async (messageText) => {
+    setIsGeneratingImage(true)
+
+    try {
+      const response = await fetch("http://localhost:3001/api/generate-image", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: messageText,
+          style: "aesthetic college memory with pastel colors, dreamy atmosphere, Instagram style",
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.imageUrl) {
+        setGeneratedImageUrl(data.imageUrl)
+      } else {
+        console.error("No image URL returned")
+      }
+    } catch (error) {
+      console.error("Error generating image:", error)
+    } finally {
+      setIsGeneratingImage(false)
+    }
+  }
+
   const shareImageToInstagram = async () => {
     if (!generatedImageUrl) return
 
@@ -344,7 +209,6 @@ They may not stay the same. But they'll always stay with you.`
 
     if (isMobile) {
       try {
-        // Try Web Share API with files first (works on some mobile browsers)
         if (navigator.share && navigator.canShare) {
           const response = await fetch(generatedImageUrl)
           const blob = await response.blob()
@@ -360,7 +224,6 @@ They may not stay the same. But they'll always stay with you.`
           }
         }
 
-        // Fallback: Copy image and try Instagram URL scheme
         const response = await fetch(generatedImageUrl)
         const blob = await response.blob()
 
@@ -371,28 +234,23 @@ They may not stay the same. But they'll always stay with you.`
             }),
           ])
 
-          // Try Instagram URL scheme for mobile
-          const instagramUrl = "instagram://story-camera"
-          window.location.href = instagramUrl
+          window.location.href = "instagram://story-camera"
 
-          // Fallback to regular Instagram if URL scheme doesn't work
           setTimeout(() => {
             window.open("https://www.instagram.com/", "_blank")
           }, 1000)
 
-          alert("📸 Image copied! Instagram should open now. If not, paste the image in Instagram Stories!")
+          alert("📸 Image copied! Instagram should open now. Paste in Stories!")
         } else {
-          // Final fallback: download
           downloadImage()
-          alert("📱 Image downloaded! Open Instagram Stories and select the image from your gallery.")
+          alert("📱 Image downloaded! Open Instagram Stories and select the image.")
         }
       } catch (error) {
         console.error("Mobile sharing error:", error)
         downloadImage()
-        alert("📱 Image downloaded! Open Instagram Stories and select the image from your gallery.")
+        alert("📱 Image downloaded! Open Instagram Stories and select the image.")
       }
     } else {
-      // Desktop: download and copy
       downloadImage()
       copyImageToClipboard()
     }
@@ -420,10 +278,9 @@ They may not stay the same. But they'll always stay with you.`
         }),
       ])
 
-      alert("🖼️ Image copied to clipboard! You can now paste it anywhere.")
+      alert("🖼️ Image copied to clipboard!")
     } catch (error) {
       console.error("Failed to copy image:", error)
-      alert("Couldn't copy image. Image has been downloaded instead!")
       downloadImage()
     }
   }
@@ -447,7 +304,6 @@ They may not stay the same. But they'll always stay with you.`
       }
     } else {
       if (navigator.share && generatedImageUrl) {
-        // Try to share the image if supported
         fetch(generatedImageUrl)
           .then((response) => response.blob())
           .then((blob) => {
@@ -459,7 +315,6 @@ They may not stay the same. But they'll always stay with you.`
             })
           })
           .catch(() => {
-            // Fallback to text sharing
             navigator
               .share({
                 title: "My College Memory",
@@ -477,10 +332,6 @@ They may not stay the same. But they'll always stay with you.`
 
   return (
     <div className="app">
-      {/* Hidden canvas for image generation */}
-      <canvas ref={canvasRef} style={{ display: "none" }} />
-
-      {/* Retro Floating Elements */}
       <div className="retro-elements">
         <div className="retro-computer">
           <span>💻</span>
@@ -509,7 +360,6 @@ They may not stay the same. But they'll always stay with you.`
         </div>
       </div>
 
-      {/* Retro Taskbar */}
       <div className="retro-taskbar">
         <div className="taskbar-left">
           <span className="taskbar-logo">💾 College Memories</span>
@@ -520,9 +370,7 @@ They may not stay the same. But they'll always stay with you.`
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="main-content">
-        {/* Browser Window for Story */}
         <section className="browser-section">
           <div className="browser-window">
             <div className="browser-header">
@@ -561,13 +409,11 @@ They may not stay the same. But they'll always stay with you.`
           </div>
         </section>
 
-        {/* Share and Generator Row */}
         <div className="bottom-row">
-          {/* Message Generator Window */}
           <section className="generator-window">
             <div className="window-frame">
               <div className="window-titlebar">
-                <span>✨ Message Generator v1.0</span>
+                <span>✨ AI Memory Generator v3.0</span>
                 <div className="window-controls">
                   <span>−</span>
                   <span>□</span>
@@ -596,16 +442,17 @@ They may not stay the same. But they'll always stay with you.`
                     />
                   </div>
                   <button onClick={generatePersonalMessage} className="retro-generate-btn" disabled={isLoading}>
-                    {isLoading ? "⏳ Generating..." : "🎯 Generate Message"}
+                    {isLoading ? "⏳ Generating..." : "🎯 Generate AI Memory"}
                   </button>
                 </div>
 
                 {generatedMessage && (
                   <div className="output-section">
                     <div className="output-window">
-                      <div className="output-header">📝 Your Aesthetic Memory</div>
+                      <div className="output-header">
+                        📝 Your AI Memory {isGeneratingImage && "⏳ Creating image..."}
+                      </div>
 
-                      {/* Show generated image preview if available */}
                       {generatedImageUrl && (
                         <div style={{ padding: "1rem", textAlign: "center", background: "#000" }}>
                           <img
@@ -613,14 +460,14 @@ They may not stay the same. But they'll always stay with you.`
                             alt="Generated memory"
                             style={{
                               width: "100%",
-                              maxWidth: "200px",
+                              maxWidth: "300px",
                               height: "auto",
                               border: "2px solid #333",
                               borderRadius: "8px",
                             }}
                           />
                           <div style={{ marginTop: "0.5rem", fontSize: "12px", color: "#00ff00" }}>
-                            ✨ Aesthetic Story Ready!
+                            ✨ AI-Generated Memory Image
                           </div>
                         </div>
                       )}
@@ -656,7 +503,6 @@ They may not stay the same. But they'll always stay with you.`
             </div>
           </section>
 
-          {/* Retro Share Section */}
           <section className="retro-share">
             <div className="share-window">
               <div className="window-header">
@@ -687,7 +533,6 @@ They may not stay the same. But they'll always stay with you.`
           </section>
         </div>
 
-        {/* Retro Footer */}
         <footer className="retro-footer">
           <div className="footer-content">
             <span>Made with ❤️ </span>

@@ -13,12 +13,16 @@
     "@ai-sdk/google": "^1.2.18",
     "ai": "^4.3.16",
     "body-parser": "^2.2.0",
+    "canvas": "^3.1.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "fs": "^0.0.1-security",
     "google": "^2.1.0",
+    "path": "^0.12.7",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "url": "^0.11.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
