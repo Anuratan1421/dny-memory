@@ -149,7 +149,7 @@ They may not stay the same. But they'll always stay with you.`
     setGeneratedImageUrl("")
 
     try {
-      const response = await fetch("http://localhost:3001/api/generate", {
+      const response = await fetch("https://dny-memory.onrender.com/api/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -177,7 +177,7 @@ They may not stay the same. But they'll always stay with you.`
     setIsGeneratingImage(true)
 
     try {
-      const response = await fetch("http://localhost:3001/api/generate-image", {
+      const response = await fetch("https://dny-memory.onrender.com/api/generate-image", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
