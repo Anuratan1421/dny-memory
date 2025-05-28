@@ -3,11 +3,12 @@
 import { useState } from "react"
 import "./App.css"
 
-export default function CollegeMemories() {
+export default function App() {
   const [name, setName] = useState("")
   const [message, setMessage] = useState("")
   const [generatedMessage, setGeneratedMessage] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [showFullStory, setShowFullStory] = useState(false)
 
   const story = `Last Bell Ring Again…
 The corridors are quieter now. Canteens that echoed with laughter now serve their last few cups of chai. Slowly, the campus begins to breathe differently—as if it knows something is ending.
@@ -32,7 +33,7 @@ But along with the warmth of friendship, something heavier lingers: the fear tha
 
 Everyone promises to stay in touch. "We'll video call every weekend," someone says. There's laughter—part genuine, part knowing. Because deep down, these promises carry more weight than just hope.
 
-But this not first time Back in school, after 10th or 12th, the goodbyes felt just as permanent. You swore those were the most special bonds you'd ever make. You wrote farewell notes and cried over slam books, believing nothing would ever replace your school friends. You thought no friendship could come close.
+But this not first time Back in school, after 10th or 12th, the goodbyes felt just as permanent. You swore those were the most special bonds you'd ever make. You wrote farewell notes and cried over slam books, believing nothing would never replace your school friends. You thought no friendship could come close.
 
 And yet—college happened. New people entered. Strangers slowly became lifelines. And without even noticing, those school friendships—the ones you swore would never fade—slowly shifted into the background.
 
@@ -73,7 +74,6 @@ They may not stay the same. But they'll always stay with you.`
       "Last Bell Ring Again... A beautiful story about college memories and friendships that last forever."
     const url = window.location.href
 
-    // Try native sharing first, with fallback options
     if (navigator.share) {
       navigator
         .share({
@@ -81,12 +81,10 @@ They may not stay the same. But they'll always stay with you.`
           text: storyText,
           url: url,
         })
-        .catch((error) => {
-          console.log("Native sharing failed, using fallback")
+        .catch(() => {
           copyToClipboard(storyText + "\n\n" + url)
         })
     } else {
-      // Fallback: copy to clipboard
       copyToClipboard(storyText + "\n\n" + url)
     }
   }
@@ -99,7 +97,6 @@ They may not stay the same. But they'll always stay with you.`
           alert("Story copied to clipboard! You can now paste it anywhere to share.")
         })
         .catch(() => {
-          // Fallback for older browsers
           fallbackCopyToClipboard(text)
         })
     } else {
@@ -122,28 +119,25 @@ They may not stay the same. But they'll always stay with you.`
     document.body.removeChild(textArea)
   }
 
-  const shareToInstagram = () => {
+  const shareToSocial = (platform) => {
     const text = encodeURIComponent("Check out this beautiful story about college memories! 📚✨")
-    // Open Instagram in new tab - user can manually share
-    window.open("https://www.instagram.com/", "_blank")
-    // Also copy text to clipboard for easy sharing
-    copyToClipboard(
-      "Last Bell Ring Again... A beautiful story about college memories and friendships that last forever.\n\n" +
-        window.location.href,
-    )
-  }
-
-  const shareToTwitter = () => {
-    const text = encodeURIComponent(
-      "Last Bell Ring Again... A beautiful story about college memories and friendships 📚✨ #CollegeMemories #Friendship",
-    )
     const url = encodeURIComponent(window.location.href)
-    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank")
-  }
 
-  const shareToFacebook = () => {
-    const url = encodeURIComponent(window.location.href)
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, "_blank")
+    switch (platform) {
+      case "twitter":
+        window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank")
+        break
+      case "facebook":
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, "_blank")
+        break
+      case "instagram":
+        copyToClipboard(
+          "Last Bell Ring Again... A beautiful story about college memories and friendships that last forever.\n\n" +
+            window.location.href,
+        )
+        window.open("https://www.instagram.com/", "_blank")
+        break
+    }
   }
 
   const generatePersonalMessage = async () => {
@@ -153,160 +147,251 @@ They may not stay the same. But they'll always stay with you.`
     }
 
     setIsLoading(true)
-    try {
-      const response = await fetch("http://localhost:3001/api/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name, message }),
-      })
 
-      if (!response.ok) {
-        throw new Error("Failed to generate message")
-      }
+    setTimeout(() => {
+      const personalizedMessage = `Hey ${name}! 🎓
 
-      const data = await response.json()
-      setGeneratedMessage(data.message)
-    } catch (error) {
-      console.error("Error generating message:", error)
-      alert("Error generating message. Please try again.")
-    } finally {
+${message}
+
+Looking back at our engineering journey, it's incredible how these four years shaped us. From late-night coding sessions to celebrating small victories, from struggling with complex algorithms to finally understanding them - every moment was a stepping stone.
+
+The friendships we built, the challenges we overcame, and the memories we created will always be a part of who we are. As we step into the next chapter of our lives, we carry with us not just a degree, but experiences that will last a lifetime.
+
+Here's to the journey that made us who we are today! 🚀
+
+#EngineeringMemories #CollegeLife #Graduation #FriendshipGoals`
+
+      setGeneratedMessage(personalizedMessage)
       setIsLoading(false)
-    }
+    }, 2000)
   }
 
-  const shareGeneratedMessage = () => {
-    if (generatedMessage) {
-      const shareText = `${generatedMessage}\n\n#EngineeringMemories #CollegeLife #Graduation`
+  const shareGeneratedMessage = (platform) => {
+    if (!generatedMessage) return
 
-      // Try native sharing first
+    const shareText = `${generatedMessage}\n\n#EngineeringMemories #CollegeLife #Graduation`
+
+    if (platform) {
+      switch (platform) {
+        case "twitter":
+          const text = encodeURIComponent(shareText)
+          window.open(`https://twitter.com/intent/tweet?text=${text}`, "_blank")
+          break
+        case "instagram":
+          copyToClipboard(shareText)
+          window.open("https://www.instagram.com/", "_blank")
+          break
+        default:
+          copyToClipboard(shareText)
+      }
+    } else {
       if (navigator.share) {
         navigator
           .share({
             title: "My Engineering Journey",
             text: shareText,
           })
-          .catch((error) => {
-            console.log("Native sharing failed, using clipboard fallback")
+          .catch(() => {
             copyToClipboard(shareText)
           })
       } else {
-        // Fallback: copy to clipboard
         copyToClipboard(shareText)
       }
     }
   }
 
-  const shareGeneratedToInstagram = () => {
-    if (generatedMessage) {
-      const shareText = `${generatedMessage}\n\n#EngineeringMemories #CollegeLife #Graduation`
-      copyToClipboard(shareText)
-      // Open Instagram
-      window.open("https://www.instagram.com/", "_blank")
-    }
-  }
-
-  const shareGeneratedToTwitter = () => {
-    if (generatedMessage) {
-      const text = encodeURIComponent(`${generatedMessage}\n\n#EngineeringMemories #CollegeLife #Graduation`)
-      window.open(`https://twitter.com/intent/tweet?text=${text}`, "_blank")
-    }
-  }
-
   return (
-    <div className="container">
-      {/* Header */}
-      <header className="header">
-        <h1>College Memories</h1>
-        <p>A journey through friendship, growth, and goodbyes</p>
-      </header>
-
-      {/* Story Section */}
-      <section className="story-section">
-        <div className="story-content">
-          <div className="story-text">
-            {story.split("\n\n").map((paragraph, index) => (
-              <p key={index}>{paragraph}</p>
-            ))}
-          </div>
-          <div className="share-buttons">
-            <button onClick={shareStory} className="share-btn">
-              📱 Share Story
-            </button>
-            <button onClick={shareToInstagram} className="share-btn instagram-btn">
-              📸 Instagram
-            </button>
-            <button onClick={shareToTwitter} className="share-btn twitter-btn">
-              🐦 Twitter
-            </button>
-            <button onClick={shareToFacebook} className="share-btn facebook-btn">
-              📘 Facebook
-            </button>
-          </div>
+    <div className="app">
+      {/* Retro Floating Elements */}
+      <div className="retro-elements">
+        <div className="retro-computer">
+          <span>💻</span>
+          <span>computer</span>
         </div>
-      </section>
+        <div className="retro-hourglass">⏳</div>
+        <div className="retro-star">✨</div>
+        <div className="retro-heart">❤️</div>
+        <div className="retro-globe">
+          <span>🌐</span>
+          <span>internet</span>
+        </div>
+        <div className="retro-mail">📧</div>
+        <div className="retro-files">📁</div>
+        <div className="retro-rainbow">🌈</div>
+        <div className="retro-friendship">👫</div>
+        <div className="retro-birds">🕊️</div>
+        <div className="retro-love-letter">💌</div>
+        <div className="retro-handshake">🤝</div>
+        <div className="retro-gift">🎁</div>
+        <div className="retro-camera">📷</div>
+        <div className="retro-music">🎵</div>
+        <div className="retro-balloon">🎈</div>
+        <div className="retro-chat-bubble" title="Hello friend!">
+          <div className="bubble-content">Hello friend!</div>
+        </div>
+      </div>
 
-      {/* Message Generator Section */}
-      <section className="generator-section">
-        <div className="generator-content">
-          <h2>Create Your Engineering Journey Message</h2>
-          <p>Share your name and a memory, and we'll create a beautiful message about your engineering journey</p>
+      {/* Retro Taskbar */}
+      <div className="retro-taskbar">
+        <div className="taskbar-left">
+          <span className="taskbar-logo">💾 College Memories</span>
+        </div>
+        <div className="taskbar-right">
+          <span className="taskbar-time">12:34 PM</span>
+          <span className="taskbar-status">●</span>
+        </div>
+      </div>
 
-          <div className="input-form">
-            <div className="input-group">
-              <label htmlFor="name">Your Name</label>
-              <input
-                type="text"
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Enter your name"
-              />
-            </div>
-
-            <div className="input-group">
-              <label htmlFor="message">Your Memory or Message</label>
-              <textarea
-                id="message"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Share a memory from your engineering journey..."
-                rows="4"
-              />
-            </div>
-
-            <button onClick={generatePersonalMessage} className="generate-btn" disabled={isLoading}>
-              {isLoading ? "✨ Creating Magic..." : "✨ Generate My Message"}
-            </button>
-          </div>
-
-          {generatedMessage && (
-            <div className="generated-message">
-              <h3>Your Personalized Message</h3>
-              <div className="message-content">
-                <p>{generatedMessage}</p>
+      {/* Main Content */}
+      <div className="main-content">
+        {/* Browser Window for Story */}
+        <section className="browser-section">
+          <div className="browser-window">
+            <div className="browser-header">
+              <div className="browser-buttons">
+                <span className="btn-close">×</span>
+                <span className="btn-minimize">−</span>
+                <span className="btn-maximize">□</span>
               </div>
-              <div className="share-options">
-                <button onClick={shareGeneratedMessage} className="share-generated-btn">
-                  📱 Share Message
-                </button>
-                <button onClick={shareGeneratedToInstagram} className="share-generated-btn instagram-btn">
-                  📸 Instagram Story
-                </button>
-                <button onClick={shareGeneratedToTwitter} className="share-generated-btn twitter-btn">
-                  🐦 Twitter
-                </button>
+              <div className="browser-url">
+                <span>📄 college-memories.html</span>
               </div>
             </div>
-          )}
-        </div>
-      </section>
+            <div className="browser-content">
+              <div className="story-content">
+                {showFullStory
+                  ? story.split("\n\n").map((paragraph, index) => (
+                      <p key={index} className="story-paragraph">
+                        {paragraph}
+                      </p>
+                    ))
+                  : story
+                      .split("\n\n")
+                      .slice(0, 5)
+                      .map((paragraph, index) => (
+                        <p key={index} className="story-paragraph">
+                          {paragraph}
+                        </p>
+                      ))}
+                <div className="read-more">
+                  <button className="retro-button" onClick={() => setShowFullStory(!showFullStory)}>
+                    {showFullStory ? "Show Less ←" : "Read Full Story →"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-      {/* Footer */}
-      <footer className="footer">
-        <p>Made with ❤️ for all the engineering graduates</p>
-      </footer>
+        {/* Share and Generator Row */}
+        <div className="bottom-row">
+          {/* Retro Share Section */}
+          <section className="retro-share">
+            <div className="share-window">
+              <div className="window-header">
+                <span>💾 Share Story</span>
+                <span className="window-close">×</span>
+              </div>
+              <div className="share-content">
+                <div className="share-buttons">
+                  <button onClick={shareStory} className="retro-share-btn">
+                    <span>📤</span>
+                    Share
+                  </button>
+                  <button onClick={() => shareToSocial("twitter")} className="retro-share-btn twitter">
+                    <span>🐦</span>
+                    Twitter
+                  </button>
+                  <button onClick={() => shareToSocial("facebook")} className="retro-share-btn facebook">
+                    <span>📘</span>
+                    Facebook
+                  </button>
+                  <button onClick={() => shareToSocial("instagram")} className="retro-share-btn instagram">
+                    <span>📸</span>
+                    Instagram
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Message Generator Window */}
+          <section className="generator-window">
+            <div className="window-frame">
+              <div className="window-titlebar">
+                <span>✨ Message Generator v1.0</span>
+                <div className="window-controls">
+                  <span>−</span>
+                  <span>□</span>
+                  <span>×</span>
+                </div>
+              </div>
+              <div className="window-body">
+                <div className="form-section">
+                  <div className="input-group">
+                    <label>Name:</label>
+                    <input
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Enter your name"
+                      className="retro-input"
+                    />
+                  </div>
+                  <div className="input-group">
+                    <label>Memory:</label>
+                    <textarea
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder="Share a college memory..."
+                      rows={3}
+                      className="retro-textarea"
+                    />
+                  </div>
+                  <button onClick={generatePersonalMessage} className="retro-generate-btn" disabled={isLoading}>
+                    {isLoading ? "⏳ Generating..." : "🎯 Generate Message"}
+                  </button>
+                </div>
+
+                {generatedMessage && (
+                  <div className="output-section">
+                    <div className="output-window">
+                      <div className="output-header">📝 Your Message</div>
+                      <div className="output-content">
+                        <pre className="generated-text">{generatedMessage}</pre>
+                      </div>
+                      <div className="output-actions">
+                        <button onClick={() => shareGeneratedMessage()} className="retro-action-btn">
+                          📤 Share
+                        </button>
+                        <button onClick={() => shareGeneratedMessage("twitter")} className="retro-action-btn">
+                          🐦 Tweet
+                        </button>
+                        <button onClick={() => shareGeneratedMessage("instagram")} className="retro-action-btn">
+                          📸 Instagram
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* Retro Footer */}
+        <footer className="retro-footer">
+          <div className="footer-content">
+            <span>Made with ❤️ for engineering graduates</span>
+            <div className="footer-rating">
+              <span>⭐</span>
+              <span>⭐</span>
+              <span>⭐</span>
+              <span>⭐</span>
+              <span>⭐</span>
+            </div>
+          </div>
+        </footer>
+      </div>
     </div>
   )
 }
