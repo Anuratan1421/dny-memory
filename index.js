@@ -4,10 +4,7 @@ import bodyParser from "body-parser"
 import dotenv from "dotenv"
 import { generateText } from "ai"
 import { google } from "@ai-sdk/google"
-import fs from "fs"
-import path from "path"
-import { fileURLToPath } from "url"
-import { createCanvas, loadImage, registerFont } from "canvas"
+import { createCanvas } from "canvas"
 
 dotenv.config()
 
@@ -15,23 +12,10 @@ const app = express()
 app.use(cors())
 app.use(bodyParser.json())
 
-// Create images directory if it doesn't exist
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const imagesDir = path.join(__dirname, "public", "images")
-if (!fs.existsSync(imagesDir)) {
-  fs.mkdirSync(imagesDir, { recursive: true })
-}
-
-// Serve static files
-app.use("/images", express.static(imagesDir))
-
 // Models
 const textModel = google("gemini-2.0-flash")
 
-// Helper to create full URL
-const getImageUrl = (req, filename) => `${req.protocol}://${req.get("host")}/images/${filename}`
-
-// Function to create aesthetic image with text
+// Function to create aesthetic image with text, returns buffer
 async function createTextImage(text, style = "aesthetic") {
   const canvas = createCanvas(1080, 1920) // Instagram story size
   const ctx = canvas.getContext('2d')
@@ -113,7 +97,7 @@ async function createTextImage(text, style = "aesthetic") {
   return canvas.toBuffer('image/png')
 }
 
-// /api/generate
+// /api/generate endpoint
 app.post("/api/generate", async (req, res) => {
   try {
     const { name, message } = req.body
@@ -135,17 +119,14 @@ Output:
     const result = await generateText({ model: textModel, prompt })
     const generatedText = result.text.trim()
 
-    // Generate image with the text
+    // Generate image with the text as base64 string
     try {
       const imageBuffer = await createTextImage(generatedText, 'aesthetic')
-      const filename = `memory_${Date.now()}.png`
-      const filepath = path.join(imagesDir, filename)
-      
-      fs.writeFileSync(filepath, imageBuffer)
-      
+      const base64Image = imageBuffer.toString('base64')
+
       return res.json({ 
         message: generatedText, 
-        imageUrl: getImageUrl(req, filename) 
+        imageBase64: `data:image/png;base64,${base64Image}`
       })
     } catch (imageError) {
       console.error("Image generation error:", imageError)
@@ -159,7 +140,7 @@ Output:
   }
 })
 
-// /api/generate-image
+// /api/generate-image endpoint (optional, just image from text)
 app.post("/api/generate-image", async (req, res) => {
   try {
     const { text, style } = req.body
@@ -168,18 +149,17 @@ app.post("/api/generate-image", async (req, res) => {
     }
 
     const imageBuffer = await createTextImage(text, style || 'aesthetic')
-    const filename = `memory_${Date.now()}.png`
-    const filepath = path.join(imagesDir, filename)
-    
-    fs.writeFileSync(filepath, imageBuffer)
-    
-    return res.json({ imageUrl: getImageUrl(req, filename) })
+    const base64Image = imageBuffer.toString('base64')
+
+   return res.json({ imageUrl: `data:image/png;base64,${imageBuffer.toString('base64')}` })
+
   } catch (error) {
     console.error("Image generation error:", error)
     res.status(500).json({ message: "Failed to generate image. Please try again." })
   }
 })
 
-app.listen(3001, () => {
-  console.log("✅ API server running on http://localhost:3001")
+const PORT = process.env.PORT || 3001
+app.listen(PORT, () => {
+  console.log(`✅ API server running on port ${PORT}`)
 })
