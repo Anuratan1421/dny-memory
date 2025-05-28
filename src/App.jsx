@@ -71,118 +71,161 @@ So here's to the friendships made in these four years—whether born in hostel r
 
 They may not stay the same. But they'll always stay with you.`
 
-  // Canvas image generation function
+  // Modern Gen Z Canvas Image Generation
   const generateMessageImage = (messageText) => {
     const canvas = canvasRef.current
     const ctx = canvas.getContext("2d")
 
-    // Set canvas size for Instagram story (1080x1920)
-    canvas.width = 1080
-    canvas.height = 1920
+    try {
+      // Mobile-friendly canvas size (Instagram story ratio but smaller for mobile)
+      const isMobile = window.innerWidth <= 768
+      canvas.width = isMobile ? 540 : 1080
+      canvas.height = isMobile ? 960 : 1920
 
-    // Create retro gradient background
-    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height)
-    gradient.addColorStop(0, "#87ceeb")
-    gradient.addColorStop(0.3, "#4169e1")
-    gradient.addColorStop(0.6, "#32cd32")
-    gradient.addColorStop(1, "#ff6b35")
+      // Modern Gen Z gradient background
+      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height)
+      gradient.addColorStop(0, "#ff9a9e")
+      gradient.addColorStop(0.2, "#fecfef")
+      gradient.addColorStop(0.4, "#fecfef")
+      gradient.addColorStop(0.6, "#a8edea")
+      gradient.addColorStop(0.8, "#fed6e3")
+      gradient.addColorStop(1, "#d299c2")
 
-    ctx.fillStyle = gradient
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
+      ctx.fillStyle = gradient
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-    // Add retro pattern overlay
-    ctx.fillStyle = "rgba(255, 255, 255, 0.1)"
-    for (let i = 0; i < canvas.width; i += 60) {
-      for (let j = 0; j < canvas.height; j += 60) {
-        if ((i + j) % 120 === 0) {
-          ctx.fillRect(i, j, 30, 30)
-        }
+      // Add aesthetic noise texture
+      for (let i = 0; i < 200; i++) {
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.1})`
+        ctx.fillRect(Math.random() * canvas.width, Math.random() * canvas.height, Math.random() * 3, Math.random() * 3)
       }
-    }
 
-    // Add decorative border
-    ctx.strokeStyle = "#333"
-    ctx.lineWidth = 12
-    ctx.strokeRect(60, 60, canvas.width - 120, canvas.height - 120)
-
-    // Add inner border
-    ctx.strokeStyle = "#ffffff"
-    ctx.lineWidth = 4
-    ctx.strokeRect(80, 80, canvas.width - 160, canvas.height - 160)
-
-    // Add title
-    ctx.fillStyle = "#ffffff"
-    ctx.font = "bold 56px Courier New"
-    ctx.textAlign = "center"
-    ctx.strokeStyle = "#333"
-    ctx.lineWidth = 3
-    ctx.strokeText("💾 College Memories", canvas.width / 2, 200)
-    ctx.fillText("💾 College Memories", canvas.width / 2, 200)
-
-    // Add retro decorative elements
-    ctx.font = "72px Arial"
-    ctx.fillStyle = "#ffd700"
-    ctx.fillText("✨", 200, 300)
-    ctx.fillText("📚", canvas.width - 200, 300)
-    ctx.fillText("🎓", 150, 400)
-    ctx.fillText("❤️", canvas.width - 150, 400)
-    ctx.fillText("👫", 200, canvas.height - 300)
-    ctx.fillText("🌈", canvas.width - 200, canvas.height - 300)
-
-    // Add main message with better formatting
-    ctx.fillStyle = "#ffffff"
-    ctx.font = "bold 36px Courier New"
-    ctx.textAlign = "center"
-
-    // Word wrap the message
-    const words = messageText.split(" ")
-    const lines = []
-    let currentLine = ""
-    const maxWidth = canvas.width - 200
-
-    words.forEach((word) => {
-      const testLine = currentLine + word + " "
-      const metrics = ctx.measureText(testLine)
-      if (metrics.width > maxWidth && currentLine !== "") {
-        lines.push(currentLine.trim())
-        currentLine = word + " "
-      } else {
-        currentLine = testLine
+      // Aesthetic geometric shapes
+      ctx.fillStyle = "rgba(255, 255, 255, 0.1)"
+      for (let i = 0; i < 8; i++) {
+        ctx.beginPath()
+        ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, Math.random() * 100 + 50, 0, 2 * Math.PI)
+        ctx.fill()
       }
-    })
-    lines.push(currentLine.trim())
 
-    // Draw the text lines with shadow effect
-    const lineHeight = 50
-    const startY = (canvas.height - lines.length * lineHeight) / 2
+      // Modern border with rounded corners effect
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.8)"
+      ctx.lineWidth = 8
+      ctx.setLineDash([20, 10])
+      ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80)
+      ctx.setLineDash([])
 
-    lines.forEach((line, index) => {
-      // Shadow
-      ctx.fillStyle = "#333"
-      ctx.fillText(line, canvas.width / 2 + 3, startY + index * lineHeight + 3)
-      // Main text
+      // Trendy title with shadow
+      const titleSize = isMobile ? 28 : 48
+      ctx.font = `bold ${titleSize}px Arial, sans-serif`
+      ctx.textAlign = "center"
+
+      // Title shadow
+      ctx.fillStyle = "rgba(0, 0, 0, 0.3)"
+      ctx.fillText("✨ college memories ✨", canvas.width / 2 + 3, 150 + 3)
+
+      // Title main
       ctx.fillStyle = "#ffffff"
-      ctx.fillText(line, canvas.width / 2, startY + index * lineHeight)
-    })
+      ctx.fillText("✨ college memories ✨", canvas.width / 2, 150)
 
-    // Add footer with retro styling
-    ctx.font = "bold 32px Courier New"
-    ctx.fillStyle = "#ffd700"
-    ctx.strokeStyle = "#333"
-    ctx.lineWidth = 2
-    ctx.strokeText("Made with ❤️ for Engineering Memories", canvas.width / 2, canvas.height - 200)
-    ctx.fillText("Made with ❤️ for Engineering Memories", canvas.width / 2, canvas.height - 200)
+      // Aesthetic decorative elements (Gen Z style)
+      const emojiSize = isMobile ? 24 : 40
+      ctx.font = `${emojiSize}px Arial`
 
-    // Add hashtags
-    ctx.font = "28px Courier New"
-    ctx.fillStyle = "#ffffff"
-    ctx.fillText("#EngineeringMemories #CollegeLife #Graduation", canvas.width / 2, canvas.height - 150)
+      // Scattered aesthetic emojis
+      const aestheticEmojis = ["✨", "💫", "🌸", "🦋", "💖", "🌙", "⭐", "🌺", "💝", "🎀"]
+      const positions = [
+        [100, 200],
+        [canvas.width - 100, 220],
+        [80, 350],
+        [canvas.width - 80, 380],
+        [120, canvas.height - 300],
+        [canvas.width - 120, canvas.height - 280],
+        [60, canvas.height / 2],
+        [canvas.width - 60, canvas.height / 2 + 50],
+      ]
 
-    // Convert to blob and create URL
-    canvas.toBlob((blob) => {
-      const url = URL.createObjectURL(blob)
-      setGeneratedImageUrl(url)
-    }, "image/png")
+      positions.forEach((pos, index) => {
+        if (index < aestheticEmojis.length) {
+          ctx.fillText(aestheticEmojis[index], pos[0], pos[1])
+        }
+      })
+
+      // Main message with modern styling
+      const messageSize = isMobile ? 18 : 32
+      ctx.font = `${messageSize}px Arial, sans-serif`
+      ctx.textAlign = "center"
+
+      // Word wrap for mobile compatibility
+      const words = messageText.split(" ")
+      const lines = []
+      let currentLine = ""
+      const maxWidth = canvas.width - (isMobile ? 80 : 160)
+
+      words.forEach((word) => {
+        const testLine = currentLine + word + " "
+        const metrics = ctx.measureText(testLine)
+        if (metrics.width > maxWidth && currentLine !== "") {
+          lines.push(currentLine.trim())
+          currentLine = word + " "
+        } else {
+          currentLine = testLine
+        }
+      })
+      lines.push(currentLine.trim())
+
+      // Limit lines for mobile
+      const maxLines = isMobile ? 15 : 20
+      const displayLines = lines.slice(0, maxLines)
+      if (lines.length > maxLines) {
+        displayLines[maxLines - 1] = displayLines[maxLines - 1] + "..."
+      }
+
+      // Draw text with modern styling
+      const lineHeight = isMobile ? 25 : 45
+      const startY = (canvas.height - displayLines.length * lineHeight) / 2
+
+      displayLines.forEach((line, index) => {
+        const yPos = startY + index * lineHeight
+
+        // Text shadow for readability
+        ctx.fillStyle = "rgba(0, 0, 0, 0.4)"
+        ctx.fillText(line, canvas.width / 2 + 2, yPos + 2)
+
+        // Main text
+        ctx.fillStyle = "#ffffff"
+        ctx.fillText(line, canvas.width / 2, yPos)
+      })
+
+      // Modern footer
+      const footerSize = isMobile ? 14 : 24
+      ctx.font = `bold ${footerSize}px Arial, sans-serif`
+      ctx.fillStyle = "rgba(255, 255, 255, 0.9)"
+      ctx.fillText("made with 💖 for the memories", canvas.width / 2, canvas.height - 120)
+
+      // Trendy hashtags
+      const hashtagSize = isMobile ? 12 : 20
+      ctx.font = `${hashtagSize}px Arial, sans-serif`
+      ctx.fillStyle = "rgba(255, 255, 255, 0.8)"
+      ctx.fillText("#collegelife #memories #friendship #nostalgia", canvas.width / 2, canvas.height - 80)
+
+      // Convert to blob with error handling
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            const url = URL.createObjectURL(blob)
+            setGeneratedImageUrl(url)
+          } else {
+            console.error("Failed to create blob")
+          }
+        },
+        "image/png",
+        0.9,
+      )
+    } catch (error) {
+      console.error("Canvas error:", error)
+      alert("Sorry, image generation failed on this device. Please try on desktop.")
+    }
   }
 
   const shareStory = () => {
@@ -276,10 +319,10 @@ They may not stay the same. But they'll always stay with you.`
       const data = await response.json()
       setGeneratedMessage(data.message)
 
-      // Generate image after getting the message
+      // Generate image after getting the message with delay for mobile
       setTimeout(() => {
         generateMessageImage(data.message)
-      }, 100)
+      }, 200)
     } catch (error) {
       console.error("Error generating message:", error)
       setGeneratedMessage("Something went wrong while generating your message. Please try again later.")
@@ -287,34 +330,81 @@ They may not stay the same. But they'll always stay with you.`
       // Generate image even with error message
       setTimeout(() => {
         generateMessageImage("Something went wrong while generating your message. Please try again later.")
-      }, 100)
+      }, 200)
     } finally {
       setIsLoading(false)
     }
   }
 
-  // New sharing functions for images
+  // Enhanced Instagram sharing for mobile
+  const shareImageToInstagram = async () => {
+    if (!generatedImageUrl) return
+
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+
+    if (isMobile) {
+      try {
+        // Try Web Share API with files first (works on some mobile browsers)
+        if (navigator.share && navigator.canShare) {
+          const response = await fetch(generatedImageUrl)
+          const blob = await response.blob()
+          const file = new File([blob], "college-memory.png", { type: "image/png" })
+
+          if (navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              title: "My College Memory",
+              text: "Check out my college memory! 💖",
+              files: [file],
+            })
+            return
+          }
+        }
+
+        // Fallback: Copy image and try Instagram URL scheme
+        const response = await fetch(generatedImageUrl)
+        const blob = await response.blob()
+
+        if (navigator.clipboard && navigator.clipboard.write) {
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              [blob.type]: blob,
+            }),
+          ])
+
+          // Try Instagram URL scheme for mobile
+          const instagramUrl = "instagram://story-camera"
+          window.location.href = instagramUrl
+
+          // Fallback to regular Instagram if URL scheme doesn't work
+          setTimeout(() => {
+            window.open("https://www.instagram.com/", "_blank")
+          }, 1000)
+
+          alert("📸 Image copied! Instagram should open now. If not, paste the image in Instagram Stories!")
+        } else {
+          // Final fallback: download
+          downloadImage()
+          alert("📱 Image downloaded! Open Instagram Stories and select the image from your gallery.")
+        }
+      } catch (error) {
+        console.error("Mobile sharing error:", error)
+        downloadImage()
+        alert("📱 Image downloaded! Open Instagram Stories and select the image from your gallery.")
+      }
+    } else {
+      // Desktop: download and copy
+      downloadImage()
+      copyImageToClipboard()
+    }
+  }
+
   const downloadImage = () => {
     if (!generatedImageUrl) return
 
     const link = document.createElement("a")
-    link.download = "college-memory-story.png"
+    link.download = "college-memory-aesthetic.png"
     link.href = generatedImageUrl
     link.click()
-  }
-
-  const shareImageToInstagram = () => {
-    if (!generatedImageUrl) return
-
-    // Download the image first
-    downloadImage()
-
-    // Show instructions for Instagram
-    setTimeout(() => {
-      alert(
-        "📸 Image downloaded! \n\n📱 To share on Instagram Story:\n1. Open Instagram app\n2. Tap '+' then 'Story'\n3. Select the downloaded image from your gallery\n4. Share your memory!",
-      )
-    }, 500)
   }
 
   const copyImageToClipboard = async () => {
@@ -330,10 +420,11 @@ They may not stay the same. But they'll always stay with you.`
         }),
       ])
 
-      alert("🖼️ Image copied to clipboard! You can now paste it in any app.")
+      alert("🖼️ Image copied to clipboard! You can now paste it anywhere.")
     } catch (error) {
       console.error("Failed to copy image:", error)
-      alert("Couldn't copy image. Please use the download option instead.")
+      alert("Couldn't copy image. Image has been downloaded instead!")
+      downloadImage()
     }
   }
 
@@ -362,8 +453,8 @@ They may not stay the same. But they'll always stay with you.`
           .then((blob) => {
             const file = new File([blob], "college-memory.png", { type: "image/png" })
             return navigator.share({
-              title: "My Engineering Journey",
-              text: "Check out my college memory!",
+              title: "My College Memory",
+              text: "Check out my college memory! 💖",
               files: [file],
             })
           })
@@ -371,7 +462,7 @@ They may not stay the same. But they'll always stay with you.`
             // Fallback to text sharing
             navigator
               .share({
-                title: "My Engineering Journey",
+                title: "My College Memory",
                 text: shareText,
               })
               .catch(() => {
@@ -512,7 +603,7 @@ They may not stay the same. But they'll always stay with you.`
                 {generatedMessage && (
                   <div className="output-section">
                     <div className="output-window">
-                      <div className="output-header">📝 Your Message</div>
+                      <div className="output-header">📝 Your Aesthetic Memory</div>
 
                       {/* Show generated image preview if available */}
                       {generatedImageUrl && (
@@ -525,11 +616,11 @@ They may not stay the same. But they'll always stay with you.`
                               maxWidth: "200px",
                               height: "auto",
                               border: "2px solid #333",
-                              borderRadius: "4px",
+                              borderRadius: "8px",
                             }}
                           />
                           <div style={{ marginTop: "0.5rem", fontSize: "12px", color: "#00ff00" }}>
-                            📸 Instagram Story Ready!
+                            ✨ Aesthetic Story Ready!
                           </div>
                         </div>
                       )}
@@ -545,15 +636,15 @@ They may not stay the same. But they'll always stay with you.`
                           🐦 Tweet
                         </button>
                         <button onClick={() => shareGeneratedMessage("instagram")} className="retro-action-btn">
-                          📸 Instagram
+                          📸 Instagram Story
                         </button>
                         {generatedImageUrl && (
                           <>
                             <button onClick={downloadImage} className="retro-action-btn">
-                              💾 Download
+                              💾 Save
                             </button>
                             <button onClick={copyImageToClipboard} className="retro-action-btn">
-                              📋 Copy Image
+                              📋 Copy
                             </button>
                           </>
                         )}
