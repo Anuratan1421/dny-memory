@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import "./App.css"
 
 export default function App() {
@@ -9,6 +9,8 @@ export default function App() {
   const [generatedMessage, setGeneratedMessage] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [showFullStory, setShowFullStory] = useState(false)
+  const [generatedImageUrl, setGeneratedImageUrl] = useState("")
+  const canvasRef = useRef(null)
 
   const story = `Last Bell Ring Again…
 The corridors are quieter now. Canteens that echoed with laughter now serve their last few cups of chai. Slowly, the campus begins to breathe differently—as if it knows something is ending.
@@ -68,6 +70,120 @@ But never from heart.
 So here's to the friendships made in these four years—whether born in hostel rooms, classrooms, corridors, or under the college tree.
 
 They may not stay the same. But they'll always stay with you.`
+
+  // Canvas image generation function
+  const generateMessageImage = (messageText) => {
+    const canvas = canvasRef.current
+    const ctx = canvas.getContext("2d")
+
+    // Set canvas size for Instagram story (1080x1920)
+    canvas.width = 1080
+    canvas.height = 1920
+
+    // Create retro gradient background
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height)
+    gradient.addColorStop(0, "#87ceeb")
+    gradient.addColorStop(0.3, "#4169e1")
+    gradient.addColorStop(0.6, "#32cd32")
+    gradient.addColorStop(1, "#ff6b35")
+
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    // Add retro pattern overlay
+    ctx.fillStyle = "rgba(255, 255, 255, 0.1)"
+    for (let i = 0; i < canvas.width; i += 60) {
+      for (let j = 0; j < canvas.height; j += 60) {
+        if ((i + j) % 120 === 0) {
+          ctx.fillRect(i, j, 30, 30)
+        }
+      }
+    }
+
+    // Add decorative border
+    ctx.strokeStyle = "#333"
+    ctx.lineWidth = 12
+    ctx.strokeRect(60, 60, canvas.width - 120, canvas.height - 120)
+
+    // Add inner border
+    ctx.strokeStyle = "#ffffff"
+    ctx.lineWidth = 4
+    ctx.strokeRect(80, 80, canvas.width - 160, canvas.height - 160)
+
+    // Add title
+    ctx.fillStyle = "#ffffff"
+    ctx.font = "bold 56px Courier New"
+    ctx.textAlign = "center"
+    ctx.strokeStyle = "#333"
+    ctx.lineWidth = 3
+    ctx.strokeText("💾 College Memories", canvas.width / 2, 200)
+    ctx.fillText("💾 College Memories", canvas.width / 2, 200)
+
+    // Add retro decorative elements
+    ctx.font = "72px Arial"
+    ctx.fillStyle = "#ffd700"
+    ctx.fillText("✨", 200, 300)
+    ctx.fillText("📚", canvas.width - 200, 300)
+    ctx.fillText("🎓", 150, 400)
+    ctx.fillText("❤️", canvas.width - 150, 400)
+    ctx.fillText("👫", 200, canvas.height - 300)
+    ctx.fillText("🌈", canvas.width - 200, canvas.height - 300)
+
+    // Add main message with better formatting
+    ctx.fillStyle = "#ffffff"
+    ctx.font = "bold 36px Courier New"
+    ctx.textAlign = "center"
+
+    // Word wrap the message
+    const words = messageText.split(" ")
+    const lines = []
+    let currentLine = ""
+    const maxWidth = canvas.width - 200
+
+    words.forEach((word) => {
+      const testLine = currentLine + word + " "
+      const metrics = ctx.measureText(testLine)
+      if (metrics.width > maxWidth && currentLine !== "") {
+        lines.push(currentLine.trim())
+        currentLine = word + " "
+      } else {
+        currentLine = testLine
+      }
+    })
+    lines.push(currentLine.trim())
+
+    // Draw the text lines with shadow effect
+    const lineHeight = 50
+    const startY = (canvas.height - lines.length * lineHeight) / 2
+
+    lines.forEach((line, index) => {
+      // Shadow
+      ctx.fillStyle = "#333"
+      ctx.fillText(line, canvas.width / 2 + 3, startY + index * lineHeight + 3)
+      // Main text
+      ctx.fillStyle = "#ffffff"
+      ctx.fillText(line, canvas.width / 2, startY + index * lineHeight)
+    })
+
+    // Add footer with retro styling
+    ctx.font = "bold 32px Courier New"
+    ctx.fillStyle = "#ffd700"
+    ctx.strokeStyle = "#333"
+    ctx.lineWidth = 2
+    ctx.strokeText("Made with ❤️ for Engineering Memories", canvas.width / 2, canvas.height - 200)
+    ctx.fillText("Made with ❤️ for Engineering Memories", canvas.width / 2, canvas.height - 200)
+
+    // Add hashtags
+    ctx.font = "28px Courier New"
+    ctx.fillStyle = "#ffffff"
+    ctx.fillText("#EngineeringMemories #CollegeLife #Graduation", canvas.width / 2, canvas.height - 150)
+
+    // Convert to blob and create URL
+    canvas.toBlob((blob) => {
+      const url = URL.createObjectURL(blob)
+      setGeneratedImageUrl(url)
+    }, "image/png")
+  }
 
   const shareStory = () => {
     const storyText =
@@ -140,33 +256,86 @@ They may not stay the same. But they'll always stay with you.`
     }
   }
 
-const generatePersonalMessage = async () => {
-  if (!name.trim() || !message.trim()) {
-    alert("Please enter both name and message");
-    return;
+  const generatePersonalMessage = async () => {
+    if (!name.trim() || !message.trim()) {
+      alert("Please enter both name and message")
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const response = await fetch("http://localhost:3001/api/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, message }),
+      })
+
+      const data = await response.json()
+      setGeneratedMessage(data.message)
+
+      // Generate image after getting the message
+      setTimeout(() => {
+        generateMessageImage(data.message)
+      }, 100)
+    } catch (error) {
+      console.error("Error generating message:", error)
+      setGeneratedMessage("Something went wrong while generating your message. Please try again later.")
+
+      // Generate image even with error message
+      setTimeout(() => {
+        generateMessageImage("Something went wrong while generating your message. Please try again later.")
+      }, 100)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  setIsLoading(true);
+  // New sharing functions for images
+  const downloadImage = () => {
+    if (!generatedImageUrl) return
 
-  try {
-    const response = await fetch("http://localhost:3001/api/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ name, message })
-    });
-
-    const data = await response.json();
-    setGeneratedMessage(data.message);
-  } catch (error) {
-    console.error("Error generating message:", error);
-    setGeneratedMessage("Something went wrong while generating your message. Please try again later.");
-  } finally {
-    setIsLoading(false);
+    const link = document.createElement("a")
+    link.download = "college-memory-story.png"
+    link.href = generatedImageUrl
+    link.click()
   }
-};
 
+  const shareImageToInstagram = () => {
+    if (!generatedImageUrl) return
+
+    // Download the image first
+    downloadImage()
+
+    // Show instructions for Instagram
+    setTimeout(() => {
+      alert(
+        "📸 Image downloaded! \n\n📱 To share on Instagram Story:\n1. Open Instagram app\n2. Tap '+' then 'Story'\n3. Select the downloaded image from your gallery\n4. Share your memory!",
+      )
+    }, 500)
+  }
+
+  const copyImageToClipboard = async () => {
+    if (!generatedImageUrl) return
+
+    try {
+      const response = await fetch(generatedImageUrl)
+      const blob = await response.blob()
+
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          [blob.type]: blob,
+        }),
+      ])
+
+      alert("🖼️ Image copied to clipboard! You can now paste it in any app.")
+    } catch (error) {
+      console.error("Failed to copy image:", error)
+      alert("Couldn't copy image. Please use the download option instead.")
+    }
+  }
 
   const shareGeneratedMessage = (platform) => {
     if (!generatedMessage) return
@@ -180,21 +349,34 @@ const generatePersonalMessage = async () => {
           window.open(`https://twitter.com/intent/tweet?text=${text}`, "_blank")
           break
         case "instagram":
-          copyToClipboard(shareText)
-          window.open("https://www.instagram.com/", "_blank")
+          shareImageToInstagram()
           break
         default:
           copyToClipboard(shareText)
       }
     } else {
-      if (navigator.share) {
-        navigator
-          .share({
-            title: "My Engineering Journey",
-            text: shareText,
+      if (navigator.share && generatedImageUrl) {
+        // Try to share the image if supported
+        fetch(generatedImageUrl)
+          .then((response) => response.blob())
+          .then((blob) => {
+            const file = new File([blob], "college-memory.png", { type: "image/png" })
+            return navigator.share({
+              title: "My Engineering Journey",
+              text: "Check out my college memory!",
+              files: [file],
+            })
           })
           .catch(() => {
-            copyToClipboard(shareText)
+            // Fallback to text sharing
+            navigator
+              .share({
+                title: "My Engineering Journey",
+                text: shareText,
+              })
+              .catch(() => {
+                copyToClipboard(shareText)
+              })
           })
       } else {
         copyToClipboard(shareText)
@@ -204,6 +386,9 @@ const generatePersonalMessage = async () => {
 
   return (
     <div className="app">
+      {/* Hidden canvas for image generation */}
+      <canvas ref={canvasRef} style={{ display: "none" }} />
+
       {/* Retro Floating Elements */}
       <div className="retro-elements">
         <div className="retro-computer">
@@ -287,6 +472,99 @@ const generatePersonalMessage = async () => {
 
         {/* Share and Generator Row */}
         <div className="bottom-row">
+          {/* Message Generator Window */}
+          <section className="generator-window">
+            <div className="window-frame">
+              <div className="window-titlebar">
+                <span>✨ Message Generator v1.0</span>
+                <div className="window-controls">
+                  <span>−</span>
+                  <span>□</span>
+                  <span>×</span>
+                </div>
+              </div>
+              <div className="window-body">
+                <div className="form-section">
+                  <div className="input-group">
+                    <label>Names:</label>
+                    <input
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Mention names "
+                      className="retro-input"
+                    />
+                  </div>
+                  <div className="input-group">
+                    <label>Memory:</label>
+                    <textarea
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder="Write message..."
+                      rows={3}
+                      className="retro-textarea"
+                    />
+                  </div>
+                  <button onClick={generatePersonalMessage} className="retro-generate-btn" disabled={isLoading}>
+                    {isLoading ? "⏳ Generating..." : "🎯 Generate Message"}
+                  </button>
+                </div>
+
+                {generatedMessage && (
+                  <div className="output-section">
+                    <div className="output-window">
+                      <div className="output-header">📝 Your Message</div>
+
+                      {/* Show generated image preview if available */}
+                      {generatedImageUrl && (
+                        <div style={{ padding: "1rem", textAlign: "center", background: "#000" }}>
+                          <img
+                            src={generatedImageUrl || "/placeholder.svg"}
+                            alt="Generated memory"
+                            style={{
+                              width: "100%",
+                              maxWidth: "200px",
+                              height: "auto",
+                              border: "2px solid #333",
+                              borderRadius: "4px",
+                            }}
+                          />
+                          <div style={{ marginTop: "0.5rem", fontSize: "12px", color: "#00ff00" }}>
+                            📸 Instagram Story Ready!
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="output-content">
+                        <pre className="generated-text">{generatedMessage}</pre>
+                      </div>
+                      <div className="output-actions">
+                        <button onClick={() => shareGeneratedMessage()} className="retro-action-btn">
+                          📤 Share
+                        </button>
+                        <button onClick={() => shareGeneratedMessage("twitter")} className="retro-action-btn">
+                          🐦 Tweet
+                        </button>
+                        <button onClick={() => shareGeneratedMessage("instagram")} className="retro-action-btn">
+                          📸 Instagram
+                        </button>
+                        {generatedImageUrl && (
+                          <>
+                            <button onClick={downloadImage} className="retro-action-btn">
+                              💾 Download
+                            </button>
+                            <button onClick={copyImageToClipboard} className="retro-action-btn">
+                              📋 Copy Image
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
           {/* Retro Share Section */}
           <section className="retro-share">
             <div className="share-window">
@@ -313,68 +591,6 @@ const generatePersonalMessage = async () => {
                     Instagram
                   </button>
                 </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Message Generator Window */}
-          <section className="generator-window">
-            <div className="window-frame">
-              <div className="window-titlebar">
-                <span>✨ Message Generator v1.0</span>
-                <div className="window-controls">
-                  <span>−</span>
-                  <span>□</span>
-                  <span>×</span>
-                </div>
-              </div>
-              <div className="window-body">
-                <div className="form-section">
-                  <div className="input-group">
-                    <label>Name:</label>
-                    <input
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Enter your name"
-                      className="retro-input"
-                    />
-                  </div>
-                  <div className="input-group">
-                    <label>Memory:</label>
-                    <textarea
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      placeholder="Share a college memory..."
-                      rows={3}
-                      className="retro-textarea"
-                    />
-                  </div>
-                  <button onClick={generatePersonalMessage} className="retro-generate-btn" disabled={isLoading}>
-                    {isLoading ? "⏳ Generating..." : "🎯 Generate Message"}
-                  </button>
-                </div>
-
-                {generatedMessage && (
-                  <div className="output-section">
-                    <div className="output-window">
-                      <div className="output-header">📝 Your Message</div>
-                      <div className="output-content">
-                        <pre className="generated-text">{generatedMessage}</pre>
-                      </div>
-                      <div className="output-actions">
-                        <button onClick={() => shareGeneratedMessage()} className="retro-action-btn">
-                          📤 Share
-                        </button>
-                        <button onClick={() => shareGeneratedMessage("twitter")} className="retro-action-btn">
-                          🐦 Tweet
-                        </button>
-                        <button onClick={() => shareGeneratedMessage("instagram")} className="retro-action-btn">
-                          📸 Instagram
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </section>

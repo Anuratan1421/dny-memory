@@ -267,6 +267,7 @@ body {
 .bubble-content {
   font-size: 14px;
   font-weight: bold;
+  color: #000;
 }
 
 /* Main Content Container */
@@ -343,6 +344,7 @@ body {
   border-radius: 4px;
   padding: 4px 8px;
   font-size: 14px;
+  color: black;
 }
 
 .browser-content {
@@ -533,6 +535,7 @@ body {
   background: white;
   font-family: "Courier New", monospace;
   font-size: 14px;
+  color: #000;
 }
 
 .retro-input:focus,
