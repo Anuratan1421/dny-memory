@@ -140,31 +140,33 @@ They may not stay the same. But they'll always stay with you.`
     }
   }
 
-  const generatePersonalMessage = async () => {
-    if (!name.trim() || !message.trim()) {
-      alert("Please enter both name and message")
-      return
-    }
-
-    setIsLoading(true)
-
-    setTimeout(() => {
-      const personalizedMessage = `Hey ${name}! 🎓
-
-${message}
-
-Looking back at our engineering journey, it's incredible how these four years shaped us. From late-night coding sessions to celebrating small victories, from struggling with complex algorithms to finally understanding them - every moment was a stepping stone.
-
-The friendships we built, the challenges we overcame, and the memories we created will always be a part of who we are. As we step into the next chapter of our lives, we carry with us not just a degree, but experiences that will last a lifetime.
-
-Here's to the journey that made us who we are today! 🚀
-
-#EngineeringMemories #CollegeLife #Graduation #FriendshipGoals`
-
-      setGeneratedMessage(personalizedMessage)
-      setIsLoading(false)
-    }, 2000)
+const generatePersonalMessage = async () => {
+  if (!name.trim() || !message.trim()) {
+    alert("Please enter both name and message");
+    return;
   }
+
+  setIsLoading(true);
+
+  try {
+    const response = await fetch("http://localhost:3001/api/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ name, message })
+    });
+
+    const data = await response.json();
+    setGeneratedMessage(data.message);
+  } catch (error) {
+    console.error("Error generating message:", error);
+    setGeneratedMessage("Something went wrong while generating your message. Please try again later.");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const shareGeneratedMessage = (platform) => {
     if (!generatedMessage) return
@@ -381,7 +383,8 @@ Here's to the journey that made us who we are today! 🚀
         {/* Retro Footer */}
         <footer className="retro-footer">
           <div className="footer-content">
-            <span>Made with ❤️ for engineering graduates</span>
+            <span>Made with ❤️ </span>
+            <span>© 1421</span>
             <div className="footer-rating">
               <span>⭐</span>
               <span>⭐</span>
