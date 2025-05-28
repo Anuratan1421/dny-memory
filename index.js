@@ -7,6 +7,7 @@ import { google } from "@ai-sdk/google"
 import fs from "fs"
 import path from "path"
 import { fileURLToPath } from "url"
+import { createCanvas, loadImage, registerFont } from "canvas"
 
 dotenv.config()
 
@@ -25,11 +26,92 @@ if (!fs.existsSync(imagesDir)) {
 app.use("/images", express.static(imagesDir))
 
 // Models
-const textModel = google("gemini-1.5-flash")
-const imageModel = google("gemini-2.0-flash")
+const textModel = google("gemini-2.0-flash")
 
 // Helper to create full URL
 const getImageUrl = (req, filename) => `${req.protocol}://${req.get("host")}/images/${filename}`
+
+// Function to create aesthetic image with text
+async function createTextImage(text, style = "aesthetic") {
+  const canvas = createCanvas(1080, 1920) // Instagram story size
+  const ctx = canvas.getContext('2d')
+
+  // Create gradient background
+  const gradient = ctx.createLinearGradient(0, 0, 0, 1920)
+  
+  // Different aesthetic styles
+  const styles = {
+    aesthetic: ['#FFB6C1', '#E6E6FA', '#F0E68C', '#98FB98'],
+    sunset: ['#FF6B6B', '#FF8E8E', '#FFB347', '#FFD700'],
+    ocean: ['#87CEEB', '#B0E0E6', '#AFEEEE', '#E0FFFF'],
+    vintage: ['#DDA0DD', '#F0E68C', '#FFB6C1', '#E6E6FA']
+  }
+  
+  const selectedColors = styles[style] || styles.aesthetic
+  selectedColors.forEach((color, index) => {
+    gradient.addColorStop(index / (selectedColors.length - 1), color)
+  })
+  
+  ctx.fillStyle = gradient
+  ctx.fillRect(0, 0, 1080, 1920)
+
+  // Add subtle overlay pattern
+  ctx.globalAlpha = 0.1
+  for (let i = 0; i < 50; i++) {
+    ctx.fillStyle = 'white'
+    ctx.beginPath()
+    ctx.arc(Math.random() * 1080, Math.random() * 1920, Math.random() * 3, 0, 2 * Math.PI)
+    ctx.fill()
+  }
+  ctx.globalAlpha = 1
+
+  // Set up text styling
+  ctx.fillStyle = 'white'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  
+  // Add text shadow for better readability
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.3)'
+  ctx.shadowBlur = 10
+  ctx.shadowOffsetX = 2
+  ctx.shadowOffsetY = 2
+
+  // Calculate font size based on text length
+  const baseSize = Math.max(32, Math.min(48, 1000 / text.length))
+  ctx.font = `${baseSize}px Arial, sans-serif`
+
+  // Word wrap function
+  function wrapText(text, maxWidth) {
+    const words = text.split(' ')
+    const lines = []
+    let currentLine = words[0]
+
+    for (let i = 1; i < words.length; i++) {
+      const word = words[i]
+      const width = ctx.measureText(currentLine + ' ' + word).width
+      if (width < maxWidth) {
+        currentLine += ' ' + word
+      } else {
+        lines.push(currentLine)
+        currentLine = word
+      }
+    }
+    lines.push(currentLine)
+    return lines
+  }
+
+  // Wrap and draw text
+  const lines = wrapText(text, 900) // Leave margin
+  const lineHeight = baseSize * 1.4
+  const totalHeight = lines.length * lineHeight
+  const startY = (1920 - totalHeight) / 2
+
+  lines.forEach((line, index) => {
+    ctx.fillText(line, 540, startY + (index * lineHeight))
+  })
+
+  return canvas.toBuffer('image/png')
+}
 
 // /api/generate
 app.post("/api/generate", async (req, res) => {
@@ -53,42 +135,21 @@ Output:
     const result = await generateText({ model: textModel, prompt })
     const generatedText = result.text.trim()
 
-    // Generate image
+    // Generate image with the text
     try {
-      const imagePrompt = `
-Create a beautiful aesthetic image for Instagram that visualizes this message:
-"${generatedText}"
-
-The image should:
-- Have a dreamy, aesthetic quality with soft pastel colors
-- Include the text elegantly integrated into the design
-- Be suitable for Instagram stories
-- Have a modern, Gen Z appeal with aesthetic elements
-- Include visual elements that represent friendship, memories, and nostalgia
-- Be in portrait orientation (9:16 ratio) for Instagram stories
-`
-
-      const imageResult = await generateText({
-        model: imageModel,
-        prompt: imagePrompt,
-        providerOptions: { google: { responseModalities: ["TEXT", "IMAGE"] } },
+      const imageBuffer = await createTextImage(generatedText, 'aesthetic')
+      const filename = `memory_${Date.now()}.png`
+      const filepath = path.join(imagesDir, filename)
+      
+      fs.writeFileSync(filepath, imageBuffer)
+      
+      return res.json({ 
+        message: generatedText, 
+        imageUrl: getImageUrl(req, filename) 
       })
-
-      if (imageResult.files?.length > 0) {
-        const imageFile = imageResult.files.find((f) => f.mimeType.startsWith("image/"))
-        if (imageFile) {
-          const filename = `memory_${Date.now()}.png`
-          const filepath = path.join(imagesDir, filename)
-          const base64Data = imageFile.base64.split(",")[1]
-          fs.writeFileSync(filepath, Buffer.from(base64Data, "base64"))
-          return res.json({ message: generatedText, imageUrl: getImageUrl(req, filename) })
-        }
-      }
-
-      return res.json({ message: generatedText }) // no image
     } catch (imageError) {
       console.error("Image generation error:", imageError)
-      return res.json({ message: generatedText }) // fallback
+      return res.json({ message: generatedText }) // fallback without image
     }
   } catch (error) {
     console.error("Error:", error)
@@ -99,85 +160,25 @@ The image should:
 })
 
 // /api/generate-image
-import { createCanvas, loadImage } from "canvas"
-
 app.post("/api/generate-image", async (req, res) => {
   try {
     const { text, style } = req.body
-
     if (!text) {
       return res.status(400).json({ message: "Text is required for image generation" })
     }
 
-    const width = 1080
-    const height = 1920
-    const canvas = createCanvas(width, height)
-    const ctx = canvas.getContext("2d")
-
-    // Optional: pastel background
-    ctx.fillStyle = "#fbeaff" // pastel background
-    ctx.fillRect(0, 0, width, height)
-
-    // Optional: overlay gradient for vibe
-    const gradient = ctx.createLinearGradient(0, 0, width, height)
-    gradient.addColorStop(0, "rgba(255, 240, 245, 0.8)")
-    gradient.addColorStop(1, "rgba(173, 216, 230, 0.8)")
-    ctx.fillStyle = gradient
-    ctx.fillRect(0, 0, width, height)
-
-    // Draw text
-    ctx.fillStyle = "#333"
-    ctx.font = "bold 40px 'Courier New'"
-    ctx.textAlign = "center"
-
-    const lines = wrapText(ctx, text, width - 100)
-    const startY = height / 3
-
-    lines.forEach((line, i) => {
-      ctx.fillText(line, width / 2, startY + i * 50)
-    })
-
-    // Save to disk
+    const imageBuffer = await createTextImage(text, style || 'aesthetic')
     const filename = `memory_${Date.now()}.png`
     const filepath = path.join(imagesDir, filename)
-
-    const out = fs.createWriteStream(filepath)
-    const stream = canvas.createPNGStream()
-    stream.pipe(out)
-
-    out.on("finish", () => {
-      return res.json({ imageUrl: getImageUrl(req, filename) })
-    })
-
+    
+    fs.writeFileSync(filepath, imageBuffer)
+    
+    return res.json({ imageUrl: getImageUrl(req, filename) })
   } catch (error) {
     console.error("Image generation error:", error)
     res.status(500).json({ message: "Failed to generate image. Please try again." })
   }
 })
-
-// Helper: word-wrap text
-function wrapText(ctx, text, maxWidth) {
-  const words = text.split(" ")
-  const lines = []
-  let line = ""
-
-  for (let n = 0; n < words.length; n++) {
-    const testLine = line + words[n] + " "
-    const metrics = ctx.measureText(testLine)
-    const testWidth = metrics.width
-
-    if (testWidth > maxWidth && n > 0) {
-      lines.push(line.trim())
-      line = words[n] + " "
-    } else {
-      line = testLine
-    }
-  }
-
-  lines.push(line.trim())
-  return lines
-}
-
 
 app.listen(3001, () => {
   console.log("✅ API server running on http://localhost:3001")
