@@ -462,7 +462,7 @@ So here's to the friendships made in these four years—whether born in hostel r
                     />
                   </div>
                   <button onClick={generatePersonalMessage} className="retro-generate-btn" disabled={isLoading}>
-                    {isLoading ? "⏳ Generating..." : "🎯 Generate AI Memory"}
+                    {isLoading ? "⏳ Generating..." : "🎯 Generate Message"}
                   </button>
                 </div>
 
